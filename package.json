@@ -1,0 +1,16 @@
+{
+  "name": "opencode-session-cost",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "^1.17.18",
+    "@types/bun": "latest",
+    "typescript": "^5.7.3"
+  }
+}
