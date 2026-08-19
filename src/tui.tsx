@@ -6,13 +6,15 @@ import { resolveRoot, subtreeCost, type CostApi, type SessionLike } from "./cost
 const money = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
-  minimumFractionDigits: 4,
-  maximumFractionDigits: 4,
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 })
 
-function toSessionLike(session: { id: string; cost?: number; parentID?: string } | undefined): SessionLike | undefined {
+function toSessionLike(
+  session: { id: string; cost?: number; parentID?: string; title?: string } | undefined,
+): SessionLike | undefined {
   if (!session) return undefined
-  return { id: session.id, cost: session.cost ?? 0, parentID: session.parentID }
+  return { id: session.id, cost: session.cost ?? 0, parentID: session.parentID, title: session.title }
 }
 
 function makeCostApi(api: TuiPluginApi): CostApi {
@@ -23,7 +25,7 @@ function makeCostApi(api: TuiPluginApi): CostApi {
       const list = result.data
       if (!Array.isArray(list)) return []
       return list
-        .map((item) => toSessionLike(item as { id: string; cost?: number; parentID?: string }))
+        .map((item) => toSessionLike(item as { id: string; cost?: number; parentID?: string; title?: string }))
         .filter((item): item is SessionLike => item !== undefined)
     },
   }
@@ -31,6 +33,7 @@ function makeCostApi(api: TuiPluginApi): CostApi {
 
 function View(props: { api: TuiPluginApi; session_id: string }) {
   const [refreshToken, setRefreshToken] = createSignal(0)
+  const [expanded, setExpanded] = createSignal(false)
   const theme = () => props.api.theme.current
 
   const unsubscribeIdle = props.api.event.on("session.idle", () => setRefreshToken((n) => n + 1))
@@ -52,15 +55,27 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
   return (
     <box>
       <text fg={theme().text}>
-        <b>Session Cost</b>
+        <b>Total Session Cost</b>
       </text>
       <text fg={theme().textMuted}>
         {result() ? money.format(result()!.totalCost) : money.format(0)} total
         {result()?.partial ? " (stale)" : ""}
       </text>
       {result() && result()!.subagentCount > 0 ? (
-        <text fg={theme().textMuted}>{result()!.subagentCount} subagent session(s)</text>
+        <box onMouseUp={() => setExpanded((v) => !v)}>
+          <text fg={theme().textMuted}>
+            {expanded() ? "▾" : "▸"} {result()!.subagentCount} subagent session(s)
+          </text>
+        </box>
       ) : null}
+      {expanded() && result()
+        ? result()!.subagents.map((subagent) => (
+            <box>
+              <text fg={theme().textMuted}>    {subagent.title}</text>
+              <text fg={theme().textMuted}>        {money.format(subagent.cost)}</text>
+            </box>
+          ))
+        : null}
     </box>
   )
 }
