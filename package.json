@@ -11,8 +11,7 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE",
-    "CHANGELOG.md"
+    "LICENSE"
   ],
   "engines": {
     "opencode": "^1.18.0",
@@ -47,8 +46,6 @@
     "@opencode-ai/plugin": "^1.17.18",
     "@opentui/core": "^0.5.4",
     "@opentui/solid": "^0.5.4",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
     "@types/bun": "latest",
     "semantic-release": "^25.0.7",
     "typescript": "^5.7.3"
