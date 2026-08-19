@@ -10,7 +10,7 @@ sidebar, the total cost of the active session plus all of its subagent
 `session.cost`. No gateway, no provider-specific integration, no network
 calls beyond the local OpenCode server the TUI already talks to.
 
-![Session Cost sidebar block showing total cost and subagent count](docs/assets/session-cost-sidebar.png)
+![Total Session Cost sidebar block showing total cost and subagent count](docs/assets/session-cost-sidebar.png)
 
 ## What it does
 
@@ -18,7 +18,7 @@ calls beyond the local OpenCode server the TUI already talks to.
 - Recursively sums `session.cost` across the root and every descendant
   session reachable via `parentID` — i.e. every `task` tool dispatch in the
   session tree, at any depth.
-- Renders a "Session Cost" block in the sidebar, directly below the
+- Renders a "Total Session Cost" block in the sidebar, directly below the
   built-in Context block, showing the total cost and (when non-zero) the
   number of subagent sessions.
 - Works with any provider/gateway, since cost comes entirely from

@@ -6,8 +6,8 @@ import { resolveRoot, subtreeCost, type CostApi, type SessionLike } from "./cost
 const money = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
-  minimumFractionDigits: 4,
-  maximumFractionDigits: 4,
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 })
 
 function toSessionLike(session: { id: string; cost?: number; parentID?: string } | undefined): SessionLike | undefined {
@@ -52,7 +52,7 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
   return (
     <box>
       <text fg={theme().text}>
-        <b>Session Cost</b>
+        <b>Total Session Cost</b>
       </text>
       <text fg={theme().textMuted}>
         {result() ? money.format(result()!.totalCost) : money.format(0)} total
