@@ -1,6 +1,6 @@
 {
   "name": "opencode-session-cost",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "OpenCode TUI plugin that shows total cost of the active session plus all subagent (task) sessions in the sidebar, using only OpenCode's own local session data.",
   "type": "module",
   "exports": {
