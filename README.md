@@ -1,5 +1,9 @@
 # opencode-session-cost
 
+[![npm version](https://img.shields.io/npm/v/opencode-session-cost.svg)](https://www.npmjs.com/package/opencode-session-cost)
+[![CI](https://github.com/igorvelho/opencode-session-cost/actions/workflows/ci.yml/badge.svg)](https://github.com/igorvelho/opencode-session-cost/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 An [OpenCode](https://opencode.ai) TUI plugin that always shows, in the
 sidebar, the total cost of the active session plus all of its subagent
 (`task` tool) sessions — using only OpenCode's own locally tracked
@@ -24,21 +28,36 @@ calls beyond the local OpenCode server the TUI already talks to.
 ## Installation
 
 This is a **TUI-only** plugin. It has no server-side hook and must be added
-to `tui.json`, not `opencode.json`:
+to `tui.json`, not `opencode.json`.
+
+### Quick install (recommended)
+
+Run this from a terminal — it installs the package and adds it to your
+global `tui.json` automatically:
+
+```bash
+opencode plugin opencode-session-cost --global
+```
+
+Restart the OpenCode TUI afterwards for the sidebar block to appear.
+
+### Manual install
+
+Add this to `tui.json` yourself instead:
+
+```json
+{
+  "plugin": [["opencode-session-cost", { "enabled": true }]]
+}
+```
+
+Using a local checkout instead of the npm package? Point at the directory:
 
 ```json
 {
   "plugin": [
     ["/absolute/path/to/opencode-session-cost", { "enabled": true }]
   ]
-}
-```
-
-Or, once published to npm:
-
-```json
-{
-  "plugin": [["opencode-session-cost", { "enabled": true }]]
 }
 ```
 
@@ -71,13 +90,6 @@ Every session reachable from the root via `parentID`, i.e. every `task`
 tool dispatch anywhere in the session tree, at any depth — not just direct
 children of the currently active session.
 
-## Relationship to `opencode-session-correlation`
-
-None. `opencode-session-cost` is fully independent of
-[`opencode-session-correlation`](https://github.com/igorvelho/opencode-session-correlation) —
-no shared imports, no shared config, no runtime dependency in either
-direction. The two packages can be installed together or separately.
-
 ## Architecture
 
 - `src/cost.ts` — pure, framework-free cost aggregation logic
@@ -99,6 +111,11 @@ bun test            # bun:test, pure logic in src/cost.test.ts
 bun run build        # Bun.build (JSX) + tsc --emitDeclarationOnly (types)
 ```
 
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for
+development setup, coding standards, and the pull request process.
+
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
