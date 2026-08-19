@@ -1,26 +1,56 @@
 {
   "name": "opencode-session-cost",
   "version": "0.1.0",
-  "private": true,
+  "description": "OpenCode TUI plugin that shows total cost of the active session plus all subagent (task) sessions in the sidebar, using only OpenCode's own local session data.",
   "type": "module",
   "exports": {
     "./tui": {
       "import": "./dist/tui.js"
     }
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "engines": {
-    "opencode": "^1.18.0"
+    "opencode": "^1.18.0",
+    "node": ">=18"
   },
   "scripts": {
     "build": "bun scripts/build.ts && tsc --emitDeclarationOnly",
     "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun run typecheck && bun test && bun run build"
   },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "plugin",
+    "tui",
+    "session",
+    "cost",
+    "subagent"
+  ],
+  "author": "Igor Velho",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/igorvelho/opencode-session-cost.git"
+  },
+  "bugs": {
+    "url": "https://github.com/igorvelho/opencode-session-cost/issues"
+  },
+  "homepage": "https://github.com/igorvelho/opencode-session-cost#readme",
   "devDependencies": {
     "@opencode-ai/plugin": "^1.17.18",
     "@opentui/core": "^0.5.4",
     "@opentui/solid": "^0.5.4",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "@types/bun": "latest",
+    "semantic-release": "^25.0.7",
     "typescript": "^5.7.3"
   }
 }
