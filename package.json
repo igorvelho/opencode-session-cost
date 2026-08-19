@@ -3,13 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./tui": {
+      "import": "./dist/tui.js"
+    }
+  },
+  "engines": {
+    "opencode": "^1.18.0"
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "bun scripts/build.ts && tsc --emitDeclarationOnly",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@opencode-ai/plugin": "^1.17.18",
+    "@opentui/core": "^0.5.4",
+    "@opentui/solid": "^0.5.4",
     "@types/bun": "latest",
     "typescript": "^5.7.3"
   }
