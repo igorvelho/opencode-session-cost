@@ -20,7 +20,8 @@ calls beyond the local OpenCode server the TUI already talks to.
   session tree, at any depth.
 - Renders a "Total Session Cost" block in the sidebar, directly below the
   built-in Context block, showing the total cost and (when non-zero) the
-  number of subagent sessions.
+  number of subagent sessions. Click the subagent line to expand it and see
+  each subagent session's name and individual cost.
 - Works with any provider/gateway, since cost comes entirely from
   OpenCode's own tracked data — no external API calls, no correlation
   headers, nothing gateway-specific.

@@ -40,7 +40,7 @@ test('resolveRoot stops at max depth on a cyclic chain instead of looping foreve
 test('subtreeCost sums root cost with zero children', async () => {
   const api = makeApi({ ses_root: { id: 'ses_root', cost: 2.5 } }, { ses_root: [] })
   const result = await subtreeCost(api, 'ses_root')
-  expect(result).toEqual({ totalCost: 2.5, subagentCount: 0, partial: false })
+  expect(result).toEqual({ totalCost: 2.5, subagentCount: 0, partial: false, subagents: [] })
 })
 
 test('subtreeCost sums root plus flat children', async () => {
@@ -56,7 +56,15 @@ test('subtreeCost sums root plus flat children', async () => {
     },
   )
   const result = await subtreeCost(api, 'ses_root')
-  expect(result).toEqual({ totalCost: 1.75, subagentCount: 2, partial: false })
+  expect(result).toEqual({
+    totalCost: 1.75,
+    subagentCount: 2,
+    partial: false,
+    subagents: [
+      { id: 'ses_child_1', title: 'ses_child_1', cost: 0.5 },
+      { id: 'ses_child_2', title: 'ses_child_2', cost: 0.25 },
+    ],
+  })
 })
 
 test('subtreeCost sums a multi-level tree', async () => {
@@ -69,7 +77,15 @@ test('subtreeCost sums a multi-level tree', async () => {
     },
   )
   const result = await subtreeCost(api, 'ses_root')
-  expect(result).toEqual({ totalCost: 1.75, subagentCount: 2, partial: false })
+  expect(result).toEqual({
+    totalCost: 1.75,
+    subagentCount: 2,
+    partial: false,
+    subagents: [
+      { id: 'ses_child', title: 'ses_child', cost: 0.5 },
+      { id: 'ses_grandchild', title: 'ses_grandchild', cost: 0.25 },
+    ],
+  })
 })
 
 test('subtreeCost does not double-count a session reachable via two paths', async () => {
@@ -87,7 +103,16 @@ test('subtreeCost does not double-count a session reachable via two paths', asyn
     },
   )
   const result = await subtreeCost(api, 'ses_root')
-  expect(result).toEqual({ totalCost: 11.2, subagentCount: 3, partial: false })
+  expect(result).toEqual({
+    totalCost: 11.2,
+    subagentCount: 3,
+    partial: false,
+    subagents: [
+      { id: 'ses_a', title: 'ses_a', cost: 0.1 },
+      { id: 'ses_shared', title: 'ses_shared', cost: 10 },
+      { id: 'ses_b', title: 'ses_b', cost: 0.1 },
+    ],
+  })
 })
 
 test('subtreeCost returns partial result and partial: true when a child fetch rejects', async () => {
@@ -99,5 +124,29 @@ test('subtreeCost returns partial result and partial: true when a child fetch re
     },
   }
   const result = await subtreeCost(api, 'ses_root')
-  expect(result).toEqual({ totalCost: 1.5, subagentCount: 1, partial: true })
+  expect(result).toEqual({
+    totalCost: 1.5,
+    subagentCount: 1,
+    partial: true,
+    subagents: [{ id: 'ses_child', title: 'ses_child', cost: 0.5 }],
+  })
+})
+
+test('subtreeCost uses session title when present, falling back to id otherwise', async () => {
+  const api = makeApi(
+    { ses_root: { id: 'ses_root', cost: 1 } },
+    {
+      ses_root: [
+        { id: 'ses_named', cost: 0.5, title: 'Refactor auth middleware' },
+        { id: 'ses_untitled', cost: 0.25 },
+      ],
+      ses_named: [],
+      ses_untitled: [],
+    },
+  )
+  const result = await subtreeCost(api, 'ses_root')
+  expect(result.subagents).toEqual([
+    { id: 'ses_named', title: 'Refactor auth middleware', cost: 0.5 },
+    { id: 'ses_untitled', title: 'ses_untitled', cost: 0.25 },
+  ])
 })
