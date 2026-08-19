@@ -1,5 +1,5 @@
 /** @jsxImportSource @opentui/solid */
-import { createMemo, createResource, createSignal } from "solid-js"
+import { createMemo, createResource, createSignal, onCleanup } from "solid-js"
 import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@opencode-ai/plugin/tui"
 import { resolveRoot, subtreeCost, type CostApi, type SessionLike } from "./cost.js"
 
@@ -33,16 +33,21 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
   const [refreshToken, setRefreshToken] = createSignal(0)
   const theme = () => props.api.theme.current
 
-  props.api.event.on("session.idle", () => setRefreshToken((n) => n + 1))
-  props.api.event.on("session.updated", () => setRefreshToken((n) => n + 1))
-  props.api.event.on("session.created", () => setRefreshToken((n) => n + 1))
-
-  const rootId = createMemo(() => {
-    refreshToken()
-    return resolveRoot(makeCostApi(props.api), props.session_id)
+  const unsubscribeIdle = props.api.event.on("session.idle", () => setRefreshToken((n) => n + 1))
+  const unsubscribeUpdated = props.api.event.on("session.updated", () => setRefreshToken((n) => n + 1))
+  const unsubscribeCreated = props.api.event.on("session.created", () => setRefreshToken((n) => n + 1))
+  onCleanup(() => {
+    unsubscribeIdle()
+    unsubscribeUpdated()
+    unsubscribeCreated()
   })
 
-  const [result] = createResource(rootId, async (id) => subtreeCost(makeCostApi(props.api), id))
+  const source = createMemo(() => ({
+    id: resolveRoot(makeCostApi(props.api), props.session_id),
+    refresh: refreshToken(),
+  }))
+
+  const [result] = createResource(source, async ({ id }) => subtreeCost(makeCostApi(props.api), id))
 
   return (
     <box>
