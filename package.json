@@ -1,20 +1,28 @@
 {
   "name": "opencode-session-cost",
   "version": "1.0.0",
-  "description": "OpenCode TUI plugin that shows total cost of the active session plus all subagent (task) sessions in the sidebar, using only OpenCode's own local session data.",
+  "description": "OpenCode TUI plugin that shows subagent cost breakdown in the sidebar, using only OpenCode's own local session data.",
   "type": "module",
+  "main": "dist/tui.js",
+  "types": "dist/tui.d.ts",
   "exports": {
+    ".": {
+      "import": "./dist/tui.js",
+      "types": "./dist/tui.d.ts"
+    },
     "./tui": {
-      "import": "./dist/tui.js"
+      "import": "./dist/tui.js",
+      "types": "./dist/tui.d.ts"
     }
   },
   "files": [
+    "tui.js",
     "dist",
     "README.md",
     "LICENSE"
   ],
   "engines": {
-    "opencode": "^1.18.0",
+    "opencode": "^2.0.28",
     "node": ">=18"
   },
   "scripts": {
@@ -42,10 +50,18 @@
     "url": "https://github.com/igorvelho/opencode-session-cost/issues"
   },
   "homepage": "https://github.com/igorvelho/opencode-session-cost#readme",
+  "dependencies": {
+    "@opencode/plugin": "^2.0.28"
+  },
+  "peerDependencies": {
+    "@opentui/core": ">=0.5.8",
+    "@opentui/solid": ">=0.5.8",
+    "solid-js": ">=1.9.0"
+  },
   "devDependencies": {
-    "@opencode-ai/plugin": "^1.17.18",
-    "@opentui/core": "^0.5.4",
-    "@opentui/solid": "^0.5.4",
+    "@opentui/core": "^0.5.8",
+    "@opentui/solid": "^0.5.8",
+    "solid-js": "^1.9.0",
     "@types/bun": "latest",
     "semantic-release": "^25.0.7",
     "typescript": "^5.7.3"

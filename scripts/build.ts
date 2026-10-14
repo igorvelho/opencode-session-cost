@@ -6,7 +6,7 @@ const result = await Bun.build({
   target: "bun",
   format: "esm",
   plugins: [solidPlugin],
-  external: ["@opencode-ai/plugin", "@opentui/core", "@opentui/keymap", "@opentui/solid", "solid-js"],
+  external: ["@opencode/plugin", "@opentui/core", "@opentui/keymap", "@opentui/solid", "solid-js"],
 })
 
 if (!result.success) {
