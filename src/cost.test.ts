@@ -40,7 +40,7 @@ test('resolveRoot stops at max depth on a cyclic chain instead of looping foreve
 test('subtreeCost sums root cost with zero children', async () => {
   const api = makeApi({ ses_root: { id: 'ses_root', cost: 2.5 } }, { ses_root: [] })
   const result = await subtreeCost(api, 'ses_root')
-  expect(result).toEqual({ totalCost: 2.5, subagentCount: 0, partial: false, subagents: [] })
+  expect(result).toEqual({ totalCost: 2.5, subagentCost: 0, subagentCount: 0, partial: false, subagents: [] })
 })
 
 test('subtreeCost sums root plus flat children', async () => {
@@ -58,6 +58,7 @@ test('subtreeCost sums root plus flat children', async () => {
   const result = await subtreeCost(api, 'ses_root')
   expect(result).toEqual({
     totalCost: 1.75,
+    subagentCost: 0.75,
     subagentCount: 2,
     partial: false,
     subagents: [
@@ -79,6 +80,7 @@ test('subtreeCost sums a multi-level tree', async () => {
   const result = await subtreeCost(api, 'ses_root')
   expect(result).toEqual({
     totalCost: 1.75,
+    subagentCost: 0.75,
     subagentCount: 2,
     partial: false,
     subagents: [
@@ -105,6 +107,7 @@ test('subtreeCost does not double-count a session reachable via two paths', asyn
   const result = await subtreeCost(api, 'ses_root')
   expect(result).toEqual({
     totalCost: 11.2,
+    subagentCost: 10.2,
     subagentCount: 3,
     partial: false,
     subagents: [
@@ -126,6 +129,7 @@ test('subtreeCost returns partial result and partial: true when a child fetch re
   const result = await subtreeCost(api, 'ses_root')
   expect(result).toEqual({
     totalCost: 1.5,
+    subagentCost: 0.5,
     subagentCount: 1,
     partial: true,
     subagents: [{ id: 'ses_child', title: 'ses_child', cost: 0.5 }],

@@ -4,56 +4,62 @@
 [![CI](https://github.com/igorvelho/opencode-session-cost/actions/workflows/ci.yml/badge.svg)](https://github.com/igorvelho/opencode-session-cost/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Do you know how much you're really spending on a session? Subagent costs
-hide from you by default in [OpenCode](https://opencode.ai). This plugin
-adds a sidebar block showing your true total — session + every subagent it
-spawned — and lets you expand it to see the cost of each one.
+OpenCode 2.x includes subagent spend in the session total, but doesn't show
+how much came from subagents or which subagent cost what. This plugin adds a
+collapsible **Subagents** block to the [OpenCode](https://opencode.ai) sidebar
+when a session spawns subagents, showing the subagent count, combined subagent
+spend, and an expandable per-subagent cost breakdown.
 
 ![Total Session Cost sidebar block showing total cost and subagent count](docs/assets/session-cost-sidebar.png)
 
 ## Installation
 
-This is a **TUI-only** plugin. It has no server-side hook and must be added
-to `tui.json`, not `opencode.json`.
+Requires **OpenCode 2.0.28 or newer (2.x)**. This is a **TUI-only** plugin.
+It has no server-side hook and must be added to the global
+`~/.config/opencode/cli.json`, not `opencode.json` or the V1 `tui.json`.
 
 ### Quick install (recommended)
 
-Run this from a terminal — it installs the package and adds it to your
-global `tui.json` automatically:
+Until a V2-compatible version is published, use the local checkout below.
+For a published V2-compatible package, add it to your global `cli.json`:
 
-```bash
-opencode plugin opencode-session-cost --global
+```json
+{
+  "plugins": ["opencode-session-cost"]
+}
 ```
 
 Restart the OpenCode TUI afterwards for the sidebar block to appear.
 
 ### Manual install
 
-Add this to `tui.json` yourself instead:
+Merge this into your global `cli.json`, preserving other settings and plugins:
 
 ```json
 {
-  "plugin": [["opencode-session-cost", { "enabled": true }]]
+  "plugins": [{ "package": "opencode-session-cost", "options": { "enabled": true } }]
 }
 ```
 
-Using a local checkout instead of the npm package? Point at the directory:
+Using a local checkout instead of the npm package? Run `bun install` and
+`bun run build` first, then point at the directory:
 
 ```json
 {
-  "plugin": [
-    ["/absolute/path/to/opencode-session-cost", { "enabled": true }]
+  "plugins": [
+    { "package": "/absolute/path/to/opencode-session-cost", "options": { "enabled": true } }
   ]
 }
 ```
 
-Restart the OpenCode TUI after editing `tui.json`.
+Restart the OpenCode TUI after building or editing `cli.json`.
+When `XDG_CONFIG_HOME` is set, use `$XDG_CONFIG_HOME/opencode/cli.json` instead.
 
 ### Options
 
 | Option    | Type    | Default | Description                                                          |
 | --------- | ------- | ------- | ---------------------------------------------------------------------|
-| `enabled` | boolean | `true`  | When `false`, the plugin's `tui()` returns immediately and registers nothing. |
+| `enabled` | boolean | `true`  | When `false`, the plugin's `setup()` returns immediately and registers nothing. |
 
 There is no provider allow-list and no other configuration — this works
 for every session regardless of model or provider.

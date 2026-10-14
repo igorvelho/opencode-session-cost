@@ -1,7 +1,8 @@
 /** @jsxImportSource @opentui/solid */
-import { createMemo, createResource, createSignal, onCleanup } from "solid-js"
-import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@opencode-ai/plugin/tui"
-import { resolveRoot, subtreeCost, type CostApi, type SessionLike } from "./cost.js"
+import { For, Show, createMemo, createResource, createSignal, onCleanup } from "solid-js"
+import { Plugin } from "@opencode/plugin/tui"
+import type { Context } from "@opencode/plugin/tui/context"
+import { makeCostApi, refreshCost } from "./session-api.js"
 
 const money = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -10,92 +11,78 @@ const money = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 })
 
-function toSessionLike(
-  session: { id: string; cost?: number; parentID?: string; title?: string } | undefined,
-): SessionLike | undefined {
-  if (!session) return undefined
-  return { id: session.id, cost: session.cost ?? 0, parentID: session.parentID, title: session.title }
-}
-
-function makeCostApi(api: TuiPluginApi): CostApi {
-  return {
-    getSession: (id) => toSessionLike(api.state.session.get(id)),
-    getChildren: async (id) => {
-      const result = await api.client.session.children({ sessionID: id })
-      const list = result.data
-      if (!Array.isArray(list)) return []
-      return list
-        .map((item) => toSessionLike(item as { id: string; cost?: number; parentID?: string; title?: string }))
-        .filter((item): item is SessionLike => item !== undefined)
-    },
-  }
-}
-
-function View(props: { api: TuiPluginApi; session_id: string }) {
+function View(props: { api: Context; sessionID: string }) {
   const [refreshToken, setRefreshToken] = createSignal(0)
   const [expanded, setExpanded] = createSignal(false)
-  const theme = () => props.api.theme.current
+  const theme = () => props.api.theme
 
-  const unsubscribeIdle = props.api.event.on("session.idle", () => setRefreshToken((n) => n + 1))
-  const unsubscribeUpdated = props.api.event.on("session.updated", () => setRefreshToken((n) => n + 1))
-  const unsubscribeCreated = props.api.event.on("session.created", () => setRefreshToken((n) => n + 1))
-  onCleanup(() => {
-    unsubscribeIdle()
-    unsubscribeUpdated()
-    unsubscribeCreated()
+  const unsubscribe = props.api.data.listen(({ details }) => {
+    if (["session.created", "session.deleted", "session.renamed", "session.usage.updated",
+      "session.usage.recorded", "session.execution.succeeded", "session.execution.failed",
+      "session.execution.interrupted"].includes(details.type)) setRefreshToken((n) => n + 1)
   })
+  onCleanup(unsubscribe)
 
   const source = createMemo(() => ({
-    id: resolveRoot(makeCostApi(props.api), props.session_id),
+    id: props.api.data.session.root(props.sessionID),
     refresh: refreshToken(),
   }))
 
-  const [result] = createResource(source, async ({ id }) => subtreeCost(makeCostApi(props.api), id))
+  const [result] = createResource(source, ({ id }) => {
+    return refreshCost(makeCostApi({
+      getSession: (sessionID) => props.api.data.session.get(sessionID),
+      listSessions: (input) => props.api.client.session.list(input),
+    }), id, () => props.api.data.session.sync(id))
+  })
 
   return (
-    <box>
-      <text fg={theme().text}>
-        <b>Total Session Cost</b>
-      </text>
-      <text fg={theme().textMuted}>
-        {result() ? money.format(result()!.totalCost) : money.format(0)} total
-        {result()?.partial ? " (stale)" : ""}
-      </text>
-      {result() && result()!.subagentCount > 0 ? (
-        <box onMouseUp={() => setExpanded((v) => !v)}>
-          <text fg={theme().textMuted}>
-            {expanded() ? "▾" : "▸"} {result()!.subagentCount} subagent session(s)
+    <Show when={(result()?.subagentCount ?? 0) > 0}>
+      <box>
+        <box flexDirection="row" gap={1} onMouseDown={() => setExpanded((v) => !v)}>
+          <text fg={theme().text.base}>{expanded() ? "▼" : "▶"}</text>
+          <text fg={theme().text.base}>
+            <b>Subagents</b>
+            <span style={{ fg: theme().text.muted }}>
+              {` (${result()!.subagentCount} · ${money.format(result()!.subagentCost)}${result()!.partial ? ", stale" : ""})`}
+            </span>
           </text>
         </box>
-      ) : null}
-      {expanded() && result()
-        ? result()!.subagents.map((subagent) => (
-            <box>
-              <text fg={theme().textMuted}>    {subagent.title}</text>
-              <text fg={theme().textMuted}>        {money.format(subagent.cost)}</text>
-            </box>
-          ))
-        : null}
-    </box>
+        <Show when={expanded()}>
+          <For each={result()!.subagents}>
+            {(subagent) => (
+              <box flexDirection="row" gap={1} minWidth={0}>
+                <text flexShrink={0} fg={theme().text.muted}>
+                  •
+                </text>
+                <text
+                  fg={theme().text.base}
+                  wrapMode="none"
+                  truncate
+                  flexGrow={1}
+                  flexShrink={1}
+                  minWidth={0}
+                >
+                  {subagent.title}
+                </text>
+                <text fg={theme().text.muted} wrapMode="none" flexShrink={0}>
+                  {money.format(subagent.cost)}
+                </text>
+              </box>
+            )}
+          </For>
+        </Show>
+      </box>
+    </Show>
   )
 }
 
-const tui: TuiPlugin = async (api, options) => {
-  if (options && (options as { enabled?: boolean }).enabled === false) return
-
-  api.slots.register({
-    order: 150,
-    slots: {
-      sidebar_content(_ctx, props) {
-        return <View api={api} session_id={props.session_id} />
-      },
-    },
-  })
-}
-
-const plugin: TuiPluginModule & { id: string } = {
+export default Plugin.define({
   id: "opencode-session-cost",
-  tui,
-}
-
-export default plugin
+  setup(api) {
+    if (api.options.enabled === false) return
+    return api.ui.slot({
+      append: "sidebar.content",
+      render: (props) => <View api={api} sessionID={props.sessionID} />,
+    })
+  },
+})

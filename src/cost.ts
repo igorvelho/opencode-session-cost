@@ -18,6 +18,7 @@ export type SubagentCost = {
 
 export type SubtreeCostResult = {
   totalCost: number
+  subagentCost: number
   subagentCount: number
   partial: boolean
   subagents: SubagentCost[]
@@ -44,7 +45,8 @@ export function resolveRoot(api: CostApi, sessionId: string): string {
 
 export async function subtreeCost(api: CostApi, rootId: string): Promise<SubtreeCostResult> {
   const visited = new Set<string>([rootId])
-  let totalCost = api.getSession(rootId)?.cost ?? 0
+  const rootCost = api.getSession(rootId)?.cost ?? 0
+  let subagentCost = 0
   let subagentCount = 0
   let partial = false
   const subagents: SubagentCost[] = []
@@ -61,7 +63,7 @@ export async function subtreeCost(api: CostApi, rootId: string): Promise<Subtree
     for (const child of children) {
       if (visited.has(child.id)) continue
       visited.add(child.id)
-      totalCost += child.cost
+      subagentCost += child.cost
       subagentCount += 1
       subagents.push({ id: child.id, title: child.title || child.id, cost: child.cost })
       await walk(child.id)
@@ -70,5 +72,5 @@ export async function subtreeCost(api: CostApi, rootId: string): Promise<Subtree
 
   await walk(rootId)
 
-  return { totalCost, subagentCount, partial, subagents }
+  return { totalCost: rootCost + subagentCost, subagentCost, subagentCount, partial, subagents }
 }

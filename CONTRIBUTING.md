@@ -34,12 +34,12 @@ gate automatically before publishing.
 
 ### Trying a local checkout in OpenCode
 
-Point your `tui.json` at the checkout directory instead of the npm package
+Point your global `~/.config/opencode/cli.json` at the checkout directory instead of the npm package
 while iterating:
 
 ```json
 {
-  "plugin": [["/absolute/path/to/opencode-session-cost", { "enabled": true }]]
+  "plugins": [{ "package": "/absolute/path/to/opencode-session-cost", "options": { "enabled": true } }]
 }
 ```
 
@@ -53,10 +53,11 @@ it up — there is no watch/hot-reload mode.
   there is a documented reason.
 - **Separation of concerns:** Keep `src/cost.ts` free of `@opentui`/Solid/JSX
   imports. It must stay pure and unit-testable in isolation — all
-  OpenCode/Solid/rendering wiring belongs in `src/tui.tsx`.
+  OpenCode/Solid/rendering wiring belongs in `src/tui.tsx`; the paginated
+  session adapter in `src/session-api.ts` stays independent of the UI runtime.
 - **No network calls beyond the local server:** This plugin reads only from
   OpenCode's own local session state and its local TUI-to-server API
-  (`api.client`). Do not add calls to any external service, gateway, or
+   (`context.client`). Do not add calls to any external service, gateway, or
   provider API.
 - **No provider-specific behavior:** The cost total must work identically
   regardless of which model or provider a session used. Do not add
