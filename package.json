@@ -3,13 +3,7 @@
   "version": "1.0.0",
   "description": "OpenCode TUI plugin that shows subagent cost breakdown in the sidebar, using only OpenCode's own local session data.",
   "type": "module",
-  "main": "dist/tui.js",
-  "types": "dist/tui.d.ts",
   "exports": {
-    ".": {
-      "import": "./dist/tui.js",
-      "types": "./dist/tui.d.ts"
-    },
     "./tui": {
       "import": "./dist/tui.js",
       "types": "./dist/tui.d.ts"

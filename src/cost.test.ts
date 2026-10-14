@@ -1,6 +1,6 @@
 // src/cost.test.ts
 import { describe, expect, test } from 'bun:test'
-import { resolveRoot, subtreeCost, type SessionLike, type CostApi } from './cost.js'
+import { formatDuration, resolveRoot, subtreeCost, totalTokens, type SessionLike, type CostApi } from './cost.js'
 
 function makeApi(sessions: Record<string, SessionLike>, children: Record<string, SessionLike[]>): CostApi {
   return {
@@ -153,4 +153,58 @@ test('subtreeCost uses session title when present, falling back to id otherwise'
     { id: 'ses_named', title: 'Refactor auth middleware', cost: 0.5 },
     { id: 'ses_untitled', title: 'ses_untitled', cost: 0.25 },
   ])
+})
+
+test('subtreeCost preserves agent, model, tokens, outcome, and time metadata on subagents', async () => {
+  const api = makeApi(
+    { ses_root: { id: 'ses_root', cost: 1 } },
+    {
+      ses_root: [
+        {
+          id: 'ses_child',
+          title: 'Audit API',
+          cost: 0.03286,
+          agent: 'explore',
+          model: { providerID: 'anthropic', id: 'claude-sonnet-4-5', variant: 'high' },
+          outcome: 'succeeded',
+          tokens: { input: 120, output: 80, reasoning: 30, cache: { read: 1000, write: 200 } },
+          time: { created: 1_000, updated: 15_400, idle: 15_200 },
+        },
+      ],
+      ses_child: [],
+    },
+  )
+  const result = await subtreeCost(api, 'ses_root')
+  expect(result.subagents).toEqual([
+    {
+      id: 'ses_child',
+      title: 'Audit API',
+      cost: 0.03286,
+      agent: 'explore',
+      model: { providerID: 'anthropic', id: 'claude-sonnet-4-5', variant: 'high' },
+      outcome: 'succeeded',
+      tokens: { input: 120, output: 80, reasoning: 30, cache: { read: 1000, write: 200 } },
+      time: { created: 1_000, updated: 15_400, idle: 15_200 },
+    },
+  ])
+})
+
+test('totalTokens sums input, output, reasoning, and cache read/write tokens', () => {
+  expect(totalTokens(undefined)).toBe(0)
+  expect(
+    totalTokens({
+      input: 100,
+      output: 50,
+      reasoning: 25,
+      cache: { read: 400, write: 125 },
+    }),
+  ).toBe(700)
+})
+
+test('formatDuration formats sub-second, second, and minute durations from created to idle/updated', () => {
+  expect(formatDuration(undefined)).toBeUndefined()
+  expect(formatDuration({ created: 5_000, updated: 4_000 })).toBeUndefined()
+  expect(formatDuration({ created: 1_000, updated: 1_400 })).toBe('<1s')
+  expect(formatDuration({ created: 1_000, updated: 99_000, idle: 13_400 })).toBe('12s')
+  expect(formatDuration({ created: 0, updated: 89_000 })).toBe('1m 29s')
 })
