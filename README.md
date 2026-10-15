@@ -22,6 +22,12 @@ Requires **OpenCode 2.x**. Run:
 opencode plugin add opencode-session-cost
 ```
 
+To update to the latest version:
+
+```bash
+opencode plugin update opencode-session-cost
+```
+
 Restart the OpenCode TUI and the **Subagents** section will appear automatically whenever a session uses subagents.
 
 ## Contributing
